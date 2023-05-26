@@ -1,11 +1,11 @@
 var options = [
   "20",
-  "200",
-  "100",
   "50",
+  "100",
   "20",
-  "500",
-  "200",
+  "50",
+  "100",
+  "150",
   "100",
   "50",
   "20",
@@ -13,12 +13,15 @@ var options = [
   "20",
   "50",
   "100",
-  "200",
-  "500",
+  "150",
+  "100",
+  "50",
   "20",
   "50",
   "100",
   "200",
+  "20",
+  "50",
 ];
 
 // Assign weights inversely proportional to the value of each option
@@ -45,6 +48,11 @@ var spinTime = 0;
 var spinTimeTotal = 0;
 
 var ctx;
+
+// Variables to track selected options
+var selected500 = 0;
+var selected1000 = 0;
+var selected200 = 0;
 
 document.getElementById("spin").addEventListener("click", spin);
 
@@ -76,15 +84,12 @@ function getColor(item, maxitem) {
 function drawRouletteWheel() {
   var canvas = document.getElementById("canvas");
   if (canvas.getContext) {
-    canvas.width = 600; // Increase the canvas width for a bigger circle
-    canvas.height = 600; // Increase the canvas height for a bigger circle
-
-    var outsideRadius = 280; // Increase the outside radius for a bigger wheel
-    var textRadius = 240; // Increase the text radius for a bigger wheel
-    var insideRadius = 100; // Increase the inside radius for a bigger wheel
+    var outsideRadius = 200;
+    var textRadius = 180;
+    var insideRadius = 80;
 
     ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, 500, 500);
 
     ctx.strokeStyle = "black";
     ctx.lineWidth = 2;
@@ -96,22 +101,8 @@ function drawRouletteWheel() {
       ctx.fillStyle = getColor(i, options.length);
 
       ctx.beginPath();
-      ctx.arc(
-        canvas.width / 2,
-        canvas.height / 2,
-        outsideRadius,
-        angle,
-        angle + arc,
-        false
-      );
-      ctx.arc(
-        canvas.width / 2,
-        canvas.height / 2,
-        insideRadius,
-        angle + arc,
-        angle,
-        true
-      );
+      ctx.arc(250, 250, outsideRadius, angle, angle + arc, false);
+      ctx.arc(250, 250, insideRadius, angle + arc, angle, true);
       ctx.stroke();
       ctx.fill();
 
@@ -122,8 +113,8 @@ function drawRouletteWheel() {
       ctx.shadowColor = "rgb(220,220,220)";
       ctx.fillStyle = "black";
       ctx.translate(
-        canvas.width / 2 + Math.cos(angle + arc / 2) * textRadius,
-        canvas.height / 2 + Math.sin(angle + arc / 2) * textRadius
+        250 + Math.cos(angle + arc / 2) * textRadius,
+        250 + Math.sin(angle + arc / 2) * textRadius
       );
       ctx.rotate(angle + arc / 2 + Math.PI / 2);
       var text = options[i];
@@ -134,14 +125,14 @@ function drawRouletteWheel() {
     //Arrow
     ctx.fillStyle = "black";
     ctx.beginPath();
-    ctx.moveTo(canvas.width / 2 - 4, canvas.height / 2 - (outsideRadius + 5));
-    ctx.lineTo(canvas.width / 2 + 4, canvas.height / 2 - (outsideRadius + 5));
-    ctx.lineTo(canvas.width / 2 + 4, canvas.height / 2 - (outsideRadius - 5));
-    ctx.lineTo(canvas.width / 2 + 9, canvas.height / 2 - (outsideRadius - 5));
-    ctx.lineTo(canvas.width / 2 + 0, canvas.height / 2 - (outsideRadius - 13));
-    ctx.lineTo(canvas.width / 2 - 9, canvas.height / 2 - (outsideRadius - 5));
-    ctx.lineTo(canvas.width / 2 - 4, canvas.height / 2 - (outsideRadius - 5));
-    ctx.lineTo(canvas.width / 2 - 4, canvas.height / 2 - (outsideRadius + 5));
+    ctx.moveTo(250 - 4, 250 - (outsideRadius + 5));
+    ctx.lineTo(250 + 4, 250 - (outsideRadius + 5));
+    ctx.lineTo(250 + 4, 250 - (outsideRadius - 5));
+    ctx.lineTo(250 + 9, 250 - (outsideRadius - 5));
+    ctx.lineTo(250 + 0, 250 - (outsideRadius - 13));
+    ctx.lineTo(250 - 9, 250 - (outsideRadius - 5));
+    ctx.lineTo(250 - 4, 250 - (outsideRadius - 5));
+    ctx.lineTo(250 - 4, 250 - (outsideRadius + 5));
     ctx.fill();
   }
 }
@@ -150,6 +141,13 @@ function spin() {
   spinAngleStart = Math.random() * 10 + 10;
   spinTime = 0;
   spinTimeTotal = Math.random() * 3 + 4 * 1000;
+
+  // Check if any option has reached its desired frequency
+  if (selected500 === 1 && selected1000 === 1 && selected200 === 2) {
+    alert("Options reached desired frequency!");
+    return;
+  }
+
   rotateWheel();
 }
 
@@ -174,12 +172,24 @@ function stopRotateWheel() {
   ctx.save();
   ctx.font = "bold 30px Helvetica, Arial";
   var text = options[index];
-  ctx.fillText(
-    text,
-    canvas.width / 2 - ctx.measureText(text).width / 2,
-    canvas.height / 2 + 10
-  );
+  ctx.fillText(text, 250 - ctx.measureText(text).width / 2, 250 + 10);
   ctx.restore();
+
+  // Update selected option counters
+  if (text === "500") {
+    selected500++;
+  } else if (text === "1000") {
+    selected1000++;
+  } else if (text === "200") {
+    selected200++;
+  }
+
+  // Reset option counters every 20 spins
+  if ((selected500 + selected1000 + selected200) % 20 === 0) {
+    selected500 = 0;
+    selected1000 = 0;
+    selected200 = 0;
+  }
 }
 
 function easeOut(t, b, c, d) {
